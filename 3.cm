@@ -1,0 +1,18 @@
+/* A program to compute the factorial value of an input */
+/* The error contained in this file is a function 
+   declarartion error, related to the parameters
+   of the main function;
+*/
+
+void main(void void) {
+  int x; int fac; /* hello */
+  x = input();
+  fac = 1;
+
+  while (x > 1) {
+    fac = fac * x;
+    x = x - 1;
+  } 
+
+  output(fac);
+}

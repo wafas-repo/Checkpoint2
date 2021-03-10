@@ -1,0 +1,71 @@
+Wafa Qazi / Aqsa Pehlvi
+CIS*4650
+Checkpoint 1
+March 7, 2021
+
+===================
+PROGRAM DESCRIPTION
+===================
+
+For CheckpointOne, the following was implemented: 
+      • Scanner that generates a sequence of relevant tokens
+      • Parser that generates and showsan abstract syntax tree
+      • Error Recovery that reports errors and continues the parsing process
+
+=========================
+BUILDING AND TESTING PLAN
+=========================
+
+This program uses both jflex and CUP as part of the application. These must be installed on
+your system for the build to be successful. These build instructions also assume that javac is
+a usable command on your computer, and that you are building on a Linux environment.
+
+Building
+-----------
+
+  Note that you need to modify the paths for CLASSPATH, JFLEX, and CUP in 
+the Makefile so that the related commands can be found on your particular 
+machine.  For example, the given settings are for the Linux server and the 
+commented settings are for my macbook.
+
+  To build the parser, type "make" in the current directory, which will 
+generate an executable program called "CM".
+
+  To test source code like "fac.cm", type 
+
+    "java -classpath /usr/share/java/cup.jar:. CM fac.cm" 
+
+and the syntax tree will be displayed on the screen.
+
+  To rebuild the parser, type "make clean" and type "make" again.
+
+  Also note that all the abstract syntax tree structures are defined under
+the directory "absyn" and the methods for showing a syntax tree is implemented
+by the visitor pattern in "ShowTreeVisitor.java".  Since some java files are 
+generated automatically, they may contain variables that are not used, which 
+are safe to ignore in the compilation process.
+
+
+Testing 
+-----------
+
+  This parser is meant to take C- programs as input files. We have provided
+  [12345].cm files to test with, however any C- program files will work. 
+
+===========================
+ASSUMPTIONS AND LIMITATIONS
+===========================
+
+ 1. Assume testing will be with errors of scope relaated to assignment
+ 2. This program will work with any files of C- spec
+ 3. This program does not have extensive error handling and will give
+    a null pointer exception when presented with most syntactical or 
+    lexical errors.
+
+====================
+FURTHER IMPROVEMENTS
+====================
+
+1. Much more error handling can be implemented 
+2. Refactoring the AST class structure may improve output of the tree 
+

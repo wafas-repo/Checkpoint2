@@ -1,0 +1,15 @@
+/*  this is a file we created that has no errors  */
+
+int sum(void) {
+    int n; int i; int sum;
+    sum = 0;
+    i = 1;
+
+    n = 10;
+
+    while ( i <= n) {
+        sum = sum + i;
+    }
+
+    return sum;
+}

@@ -1,0 +1,22 @@
+/* errors in this file ar no parameters in 
+   function declaration and missing semi colon  and
+   missing operators */
+
+int total(){
+
+    int r; int sum;
+
+    while(r<10){
+        r  r + 1;
+    }
+
+    if(r>10){
+        r = r + 5
+    }
+
+    if(r>10){
+        r = r - 5;
+    }
+
+    return 0;
+}

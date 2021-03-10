@@ -1,0 +1,13 @@
+/* A program to perform Euclid's algorithm to compute a gcd */
+/* The error contained in this file is a function 
+   declarartion error, related to declared funtion with no body
+*/
+
+void main(void) {
+  int x; int y;
+  x = input();
+  y = input();
+  output(gcd(x, y));
+}
+
+int gcd(int u, int v) 
