@@ -15,9 +15,21 @@ import java.io.*;
 import absyn.*;
    
 class CM {
-  public final static boolean SHOW_TREE = true;
+  public static boolean SHOW_TREE = false;
+  public static boolean SHOW_TABLE = false;
   static public void main(String argv[]) {    
     /* Start the parser */
+    int n = 0;
+    String st = "-a";
+
+    for (int i = 0; i < argv.length; i++) {
+        if(argv[i].equals("-a")){
+          SHOW_TREE = true;
+        } else if (argv[i].equals("-s")){
+          SHOW_TABLE = true;
+        }
+    }
+
     try {
       parser p = new parser(new Lexer(new FileReader(argv[0])));
       Absyn result = (Absyn)(p.parse().value);      
@@ -25,6 +37,10 @@ class CM {
          System.out.println("The abstract syntax tree is:");
          ShowTreeVisitor visitor = new ShowTreeVisitor();
          result.accept(visitor, 0); 
+      }
+      if (SHOW_TABLE) {
+        SemanticAnalyzer analyzer = new SemanticAnalyzer();
+        result.accept(analyzer, 0);
       }
     } catch (Exception e) {
       /* do cleanup here -- possibly rethrow e */

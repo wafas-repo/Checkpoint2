@@ -132,6 +132,9 @@ var_dec       ::= type_specifier:t ID:i SEMI
                  {:RESULT = new SimpleDec(tleft, t, i); :}
                 | type_specifier:t ID:i LBRACK NUM:n RBRACK SEMI
                  {:RESULT = new ArrayDec(tleft, t, i, new IntExp(nleft, nright, n)); :}
+                | error:e ID:i SEMI
+                  {: parser.report_error("Invalid syntax in variable declaration", e);
+                   RESULT = null; :}  
                 | type_specifier:t error:e SEMI
                   {: parser.report_error("Invalid syntax in variable declaration", e);
                    RESULT = null; :}
@@ -255,9 +258,6 @@ exp            ::= var:v EQ exp:e
                    {: RESULT = new OpExp(s1left, s1right, s1, OpExp.OVER, s2); :} 
                  | factor:f
                    {: RESULT = f; :}
-                 | error:e
-                   {: parser.report_error("Syntax error in expression statement", e);
-                   RESULT = new NilExp(eleft); :}
                  ;
 
 var            ::= ID:i

@@ -1,12 +1,15 @@
 /* A program to compute the f42484894u29
- factorial value of an input */
+factorial value of an input */
 
 void main(void) {
   int x; int fac; /* hello */
   x = input();
   fac = 1;
-
+  if (x = 0) {
+    int y;
+  }
   while (x > 1) {
+    int z;
     fac = fac * x;
     x = x - 1;
   } 

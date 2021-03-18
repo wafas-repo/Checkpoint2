@@ -167,7 +167,6 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   @Override
   public void visit(NameTy exp, int level) {
-    indent(level);
     if (exp.typ == 0) { 
       System.out.println("NameTy: INT");
     } else if (exp.typ == 1) {
@@ -178,11 +177,9 @@ public class ShowTreeVisitor implements AbsynVisitor {
   @Override
   public void visit(FunctionDec exp, int level) {
     indent(level);
-    System.out.println( "FunctionDec:" );
+    System.out.print( "FunctionDec: " + "ID: " + exp.func + " ");
     level++;
     exp.result.accept(this, level);
-    indent(level);
-    System.out.println("ID: " + exp.func);
     VarDecList ex = exp.params;
     while( ex != null ) {
       ex.head.accept( this, level );
@@ -193,25 +190,21 @@ public class ShowTreeVisitor implements AbsynVisitor {
 
   @Override
   public void visit(SimpleDec exp, int level) {
-     indent( level );
-    System.out.println( "SimpleDec:" );
+    indent( level );
     level++;
+    System.out.print( "SimpleDec: " + "ID: " + exp.name + " ");
     exp.typ.accept( this, level );
-    indent(level);
-    System.out.println("ID: " + exp.name);
   }
 
   @Override
   public void visit(ArrayDec exp, int level) {
     indent( level );
-    System.out.println( "ArrayDec:" );
     level++;
-    exp.typ.accept( this, level );
-    indent(level);
-    System.out.println("ID: " + exp.name);  
+    System.out.print( "ArrayDec: " + "ID: " + exp.name  + " " );
     if (exp.size != null) {
-      exp.size.accept( this, level );
+      System.out.print("Size: " + exp.size.value + " ");
     } 
+    exp.typ.accept( this, level );
     }
 
   @Override
