@@ -7,6 +7,9 @@ void main(void) {
   fac = 1;
   if (x = 0) {
     int y;
+  } else {
+    int l;
+    int y;
   }
   while (x > 1) {
     int z;

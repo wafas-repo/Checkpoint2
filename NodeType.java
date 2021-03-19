@@ -5,6 +5,7 @@ public class NodeType {
     NameTy type;
     public int level;
 
+
     public NodeType(String name, NameTy type, int level) {
         this.name = name;
         this.type = type;
