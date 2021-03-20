@@ -1,8 +1,11 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.imageio.plugins.tiff.ExifGPSTagSet;
 
 import absyn.*;
 
@@ -51,7 +54,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
   
   }
 
-  // Dont touch
+  ////////////////////////////// Dont touch
   @Override
   public void visit(CompoundExp exp, int level) {
      VarDecList dec = exp.decs;
@@ -74,7 +77,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
   @Override
   public void visit(VarDecList exp, int level) {
       while( exp != null ) {
-
         if (exp.head != null) {
           exp.head.accept( this, level );
           exp = exp.tail;
@@ -225,6 +227,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
   public void printMap(int level, String params) {
     //System.out.println(table);
+    System.out.println(table.keySet());
     for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
       for (NodeType node : ee.getValue()) {
         if (node.level == level) {
@@ -244,16 +247,15 @@ public class SemanticAnalyzer implements AbsynVisitor {
             }
             System.out.print(") -> ");
           }
-          for (NodeType nt : ee.getValue()) {
-            if (nt.level == level) {
-             // System.out.print(nt.level);
-              if(nt.type.typ == 1) {
+            if (node.level == level) {
+              System.out.print(node.level);
+              if(node.type.typ == 1) {
                 System.out.println("void");
-              } else if (nt.type.typ == 0) {
+              } else if (node.type.typ == 0) {
                 System.out.println("int");
               }
             }  
-          }
+          
         }
       } 
     }
@@ -262,23 +264,19 @@ public class SemanticAnalyzer implements AbsynVisitor {
   // Need to handle cases for double declarations within scope 
   public void insert(String name, int level, NameTy type){
 
-
-
     NodeType entry = new NodeType(name, type, level); // check if this node exists
       if (table.get(name) == null) {
         table.put(name, new ArrayList<NodeType>());
-      }
+      } 
       //System.out.println(entry.name + "" + entry.level);
       table.get(name).add(entry);
-      
-    
   
   }
 
-  // use for searching defined/ undefined vars ?
-  public void VarExists(String name, int scope) {
-   
-  }
+
+  public boolean symbolExistsInCurrentScope(String var){
+		return table.keySet().contains(var);
+	}
 
   public void delete(int level) {
     for(ArrayList<NodeType> node : table.values()) {
@@ -287,14 +285,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
               node.remove(j);
       }
     }
-      // while (i.hasNext()) {
-      //   Entry<String, ArrayList<NodeType>> e = (Entry<String, ArrayList<NodeType>>) i.next();
-      //   for (NodeType node : e.getValue()) {
-      //     if(node.level == level) {
-             
-      //     }
-      //   }     
-      // }
   }
 }
 
