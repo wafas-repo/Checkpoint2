@@ -5,14 +5,8 @@ void main(void) {
   int x; int fac; /* hello */
   x = input();
   fac = 1;
-  if (x = 0) {
-    int y;
-  } else {
-    int l;
-    int y;
-  }
   while (x > 1) {
-    int z;
+    int x;
     fac = fac * x;
     x = x - 1;
   } 
