@@ -1,8 +1,11 @@
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.imageio.plugins.tiff.ExifGPSTagSet;
 
 import absyn.*;
 
@@ -51,7 +54,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
   
   }
 
-  // Dont touch
+  ////////////////////////////// Dont touch
   @Override
   public void visit(CompoundExp exp, int level) {
      VarDecList dec = exp.decs;
@@ -71,16 +74,15 @@ public class SemanticAnalyzer implements AbsynVisitor {
   }
 
   ////////////////////// Dont touch
-@Override
-public void visit(VarDecList exp, int level) {
-    while( exp != null ) {
-
-      if (exp.head != null) {
-        exp.head.accept( this, level );
-        exp = exp.tail;
-      }
-    } 
-}
+  @Override
+  public void visit(VarDecList exp, int level) {
+      while( exp != null ) {
+        if (exp.head != null) {
+          exp.head.accept( this, level );
+          exp = exp.tail;
+        }
+      } 
+  }
 
 
   public void visit( AssignExp exp, int level ) {
@@ -134,7 +136,7 @@ public void visit(VarDecList exp, int level) {
     exp.body.accept( this, level ); 
 
     printMap(level, "");
-    delete(table.entrySet().iterator(), level);
+    delete(level);
     indent(level);
     System.out.println("leaving while block: " + level);
   }
@@ -147,7 +149,7 @@ public void visit(VarDecList exp, int level) {
     exp.thenpart.accept( this, level );
     
     printMap(level, "");
-    delete(table.entrySet().iterator(), level);
+    delete(level);
     indent(level);
     System.out.println("Leaving the if block:  " + level);
     
@@ -156,7 +158,7 @@ public void visit(VarDecList exp, int level) {
       System.out.println("Entering a new else block: " + level);
       exp.elsepart.accept( this, level );
       printMap(level, "");
-      delete(table.entrySet().iterator(), level);
+      delete(level);
       indent(level);
       System.out.println("Leaving the else block: " + level);
     }
@@ -166,34 +168,43 @@ public void visit(VarDecList exp, int level) {
   @Override
   public void visit(FunctionDec exp, int level) {
     NodeType entry = new NodeType(exp.func, exp.result, level);
-    level++;
-    indent(level);
-    System.out.println("Entering the scope for function: " + level);
-    //exp.result.accept(this, level);
-    VarDecList ex = exp.params;
-    //String scopeParams = "";
-    tempParams = "";
-    while( ex != null ) {
-      ex.head.accept( this, level );
-      ex = ex.tail;
+    if (!varExistsInCurrentScope(entry)){
+      level++;
+      indent(level);
+      System.out.println("Entering the scope for function: " + level);
+      //exp.result.accept(this, level);
+      VarDecList ex = exp.params;
+      //String scopeParams = "";
+      tempParams = "";
+      while( ex != null ) {
+        ex.head.accept( this, level );
+        ex = ex.tail;
+      }
+      scopeParams = tempParams;
+      exp.body.accept(this, level);
+      if (table.get(exp.func) == null) {
+        table.put(exp.func, new ArrayList<NodeType>());
+      }
+      
+        table.get(exp.func).add(0, entry);
+    
+      printMap(level, "");
+      delete(level);
+      indent(level);
+      System.out.println("Leaving the scope for function: " + level);
+    } else {
+      System.err.printf("line %d: error: function %s is already defined within scope.\n", exp.pos+1, exp.func);
     }
-    scopeParams = tempParams;
-    exp.body.accept(this, level);
-    if (table.get(exp.func) == null) {
-      table.put(exp.func, new ArrayList<NodeType>());
-    }
-    table.get(exp.func).add(0, entry);
-    printMap(level, "");
-    delete(table.entrySet().iterator(), level);
-    indent(level);
-    System.out.println("Leaving the scope for function: " + level);
-  
   }
 
   @Override
   public void visit(SimpleDec exp, int level) {
 
-    insert(exp.name, level, exp.typ);
+    boolean err;
+    err = insert(exp.name, level, exp.typ);
+    if (err == false) {
+      System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
+    }
     tempParams += exp.typ.typ + " ";
     //exp.typ.accept( this, level );
   }
@@ -206,7 +217,12 @@ public void visit(VarDecList exp, int level) {
         name = name + exp.size.value + "";
     name = name + "]";
 
-    insert(name, level, exp.typ);
+    boolean err;
+    err = insert(name, level, exp.typ);
+    if (err == false) {
+      System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
+    }
+
     tempParams += exp.typ.typ + " ";
 
   }
@@ -219,65 +235,95 @@ public void visit(VarDecList exp, int level) {
       exp = exp.tail;
     }
     printMap(level, scopeParams);
-    delete(table.entrySet().iterator(), level);
+    delete(level);
     System.out.println("Leaving global scope: "  + level);
   }
 
-public void printMap(int level, String params) {
-  for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
-    for (NodeType node : ee.getValue()) {
-      if (node.level == level) {
-        level++;
-        indent(level);
-        level--;
-        System.out.print(ee.getKey() + ": ");
-        if (!params.isEmpty()) {
-          String[] tokens = params.split(" ");
-          System.out.print("( ");
-          for (String s : tokens) {
-            if (s.equals("0"))
-                System.out.print("int ");
-            else if (s.equals("1"))
-                System.out.print("void ");
+  public void printMap(int level, String params) {
+    //System.out.println(table);
+    //System.out.println(table.keySet());
+    for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
+      for (NodeType node : ee.getValue()) {
+        if (node.level == level) {
+          level++;
+          indent(level);
+          level--;
+          //System.out.print(node.level);
+          System.out.print(ee.getKey() + ": ");
+          if (!params.isEmpty()) {
+            String[] tokens = params.split(" ");
+            System.out.print("( ");
+            for (String s : tokens) {
+              if (s.equals("0"))
+                  System.out.print("int ");
+              else if (s.equals("1"))
+                  System.out.print("void ");
+            }
+            System.out.print(") -> ");
           }
-          System.out.print(") -> ");
+            if (node.level == level) {
+              //System.out.print(node.level);
+              if(node.type.typ == 1) {
+                System.out.println("void");
+              } else if (node.type.typ == 0) {
+                System.out.println("int");
+              }
+            }  
         }
-        for (NodeType nt : ee.getValue()) {
-          if(nt.type.typ == 1) {
-            System.out.println("void");
-          } else if (nt.type.typ == 0) {
-            System.out.println("int");
-          }
-        }
-      }
-    } 
+      } 
+    }
   }
-}
 
-// Need to handle cases for double declarations within scope 
-public void insert(String name, int level, NameTy type){
+  // Need to handle cases for double declarations within scope 
+  public boolean insert(String name, int level, NameTy type){  
 
-  NodeType entry = new NodeType(name, type, level);
-    if (table.get(name) == null) {
-      table.put(name, new ArrayList<NodeType>());
-    }
-    table.get(name).add(0, entry);
-}
+    NodeType entry = new NodeType(name, type, level); // check if this node exists
+   // System.out.println("entry to go in: " + entry.name + entry.level + entry.type.typ);
+      if (table.get(name) == null) {
+        table.put(name, new ArrayList<NodeType>());
+      } 
+      if (!varExistsInCurrentScope(entry)){
+        //System.out.println("Node exists " + entry.name);
+        table.get(name).add(entry);
+        return true;
+      } //else {
+        //System.out.println("Node exists already!");
+        
+      //}
+      return false;
 
-// use for searching defined/ undefined vars ?
-public void lookup() {
+      //System.out.println(entry.name + "" + entry.level);
+     
+  }
 
-}
 
-public void delete(Iterator i, int level) {
-    while (i.hasNext()) {
-      Entry<String, ArrayList<NodeType>> e = (Entry<String, ArrayList<NodeType>>) i.next();
-      for (NodeType node : e.getValue()) {
-        if(node.level == level) {
-          i.remove();
+  public boolean varExistsInCurrentScope(NodeType node){
+		for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
+      String key = ee.getKey();
+      ArrayList<NodeType> values = ee.getValue();
+      for (NodeType obj : values) {
+        //System.out.println("obj: " + obj.name + obj.level + obj.type.typ);
+        //System.out.println("node: " + node.name + node.level + node.type.typ);
+        if (obj.equals(node)) {
+            //System.out.println("true");
+             return true;
         }
-      }     
+        // } else {
+        //   System.out.println("false");
+        // }
+      }
     }
-}
+   // System.out.println("false");
+    return false;
+	}
+
+  public void delete(int level) {
+    for(ArrayList<NodeType> node : table.values()) {
+      for(int j=node.size()-1;j>=0;j--) {
+          if (node.get(j).level == level)
+              node.remove(j);
+      }
+    }
+  }
 }
 
