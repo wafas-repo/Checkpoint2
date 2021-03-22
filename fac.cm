@@ -3,14 +3,17 @@ factorial value of an input */
 
 void main(void) {
   int x; int fac; /* hello */
-  int x;
   x = input();
   fac = 1;
   while (x > 1) {
-    int x;
+    int y[20];
     fac = fac * x;
     x = x - 1;
   } 
 
   output(fac);
+}
+
+void main(int x) {
+  
 }

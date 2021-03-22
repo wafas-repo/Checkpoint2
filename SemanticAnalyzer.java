@@ -73,7 +73,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
      } 
   }
 
-    ////////////////////// Dont touch
+  ////////////////////// Dont touch
   @Override
   public void visit(VarDecList exp, int level) {
       while( exp != null ) {
@@ -168,34 +168,43 @@ public class SemanticAnalyzer implements AbsynVisitor {
   @Override
   public void visit(FunctionDec exp, int level) {
     NodeType entry = new NodeType(exp.func, exp.result, level);
-    level++;
-    indent(level);
-    System.out.println("Entering the scope for function: " + level);
-    //exp.result.accept(this, level);
-    VarDecList ex = exp.params;
-    //String scopeParams = "";
-    tempParams = "";
-    while( ex != null ) {
-      ex.head.accept( this, level );
-      ex = ex.tail;
+    if (!varExistsInCurrentScope(entry)){
+      level++;
+      indent(level);
+      System.out.println("Entering the scope for function: " + level);
+      //exp.result.accept(this, level);
+      VarDecList ex = exp.params;
+      //String scopeParams = "";
+      tempParams = "";
+      while( ex != null ) {
+        ex.head.accept( this, level );
+        ex = ex.tail;
+      }
+      scopeParams = tempParams;
+      exp.body.accept(this, level);
+      if (table.get(exp.func) == null) {
+        table.put(exp.func, new ArrayList<NodeType>());
+      }
+      
+        table.get(exp.func).add(0, entry);
+    
+      printMap(level, "");
+      delete(level);
+      indent(level);
+      System.out.println("Leaving the scope for function: " + level);
+    } else {
+      System.err.printf("line %d: error: function %s is already defined within scope.\n", exp.pos+1, exp.func);
     }
-    scopeParams = tempParams;
-    exp.body.accept(this, level);
-    if (table.get(exp.func) == null) {
-      table.put(exp.func, new ArrayList<NodeType>());
-    }
-    table.get(exp.func).add(0, entry);
-    printMap(level, "");
-    delete(level);
-    indent(level);
-    System.out.println("Leaving the scope for function: " + level);
-  
   }
 
   @Override
   public void visit(SimpleDec exp, int level) {
 
-    insert(exp.name, level, exp.typ);
+    boolean err;
+    err = insert(exp.name, level, exp.typ);
+    if (err == false) {
+      System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
+    }
     tempParams += exp.typ.typ + " ";
     //exp.typ.accept( this, level );
   }
@@ -208,7 +217,12 @@ public class SemanticAnalyzer implements AbsynVisitor {
         name = name + exp.size.value + "";
     name = name + "]";
 
-    insert(name, level, exp.typ);
+    boolean err;
+    err = insert(name, level, exp.typ);
+    if (err == false) {
+      System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
+    }
+
     tempParams += exp.typ.typ + " ";
 
   }
@@ -227,7 +241,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
   public void printMap(int level, String params) {
     //System.out.println(table);
-    System.out.println(table.keySet());
+    //System.out.println(table.keySet());
     for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
       for (NodeType node : ee.getValue()) {
         if (node.level == level) {
@@ -248,34 +262,59 @@ public class SemanticAnalyzer implements AbsynVisitor {
             System.out.print(") -> ");
           }
             if (node.level == level) {
-              System.out.print(node.level);
+              //System.out.print(node.level);
               if(node.type.typ == 1) {
                 System.out.println("void");
               } else if (node.type.typ == 0) {
                 System.out.println("int");
               }
             }  
-          
         }
       } 
     }
   }
 
   // Need to handle cases for double declarations within scope 
-  public void insert(String name, int level, NameTy type){
+  public boolean insert(String name, int level, NameTy type){  
 
     NodeType entry = new NodeType(name, type, level); // check if this node exists
+   // System.out.println("entry to go in: " + entry.name + entry.level + entry.type.typ);
       if (table.get(name) == null) {
         table.put(name, new ArrayList<NodeType>());
       } 
+      if (!varExistsInCurrentScope(entry)){
+        //System.out.println("Node exists " + entry.name);
+        table.get(name).add(entry);
+        return true;
+      } //else {
+        //System.out.println("Node exists already!");
+        
+      //}
+      return false;
+
       //System.out.println(entry.name + "" + entry.level);
-      table.get(name).add(entry);
-  
+     
   }
 
 
-  public boolean symbolExistsInCurrentScope(String var){
-		return table.keySet().contains(var);
+  public boolean varExistsInCurrentScope(NodeType node){
+		for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
+      String key = ee.getKey();
+      ArrayList<NodeType> values = ee.getValue();
+      for (NodeType obj : values) {
+        //System.out.println("obj: " + obj.name + obj.level + obj.type.typ);
+        //System.out.println("node: " + node.name + node.level + node.type.typ);
+        if (obj.equals(node)) {
+            //System.out.println("true");
+             return true;
+        }
+        // } else {
+        //   System.out.println("false");
+        // }
+      }
+    }
+   // System.out.println("false");
+    return false;
 	}
 
   public void delete(int level) {

@@ -14,12 +14,22 @@ public class NodeType {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof NodeType))  {
+
+        NodeType node = (NodeType)obj;
+
+        if (!node.name.equals(this.name)){
             return false;
         }
-        NodeType other = (NodeType)obj;
-        return name.equals(other.name)
-            && type.equals(other.type) && level == other.level;
+
+        if (node.level != this.level) {
+            return false;
+        }
+
+        if (node.type.typ != this.type.typ) {
+            return false;
+        }
+             
+        return true;
     }
     @Override
     public int hashCode() {
