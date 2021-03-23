@@ -2,18 +2,19 @@
 factorial value of an input */
 
 void main(void) {
-  int x; int fac; /* hello */
-  x = input();
+ int x; int fac; /* hello */
   fac = 1;
   while (x > 1) {
-    int y[20];
+    int x;
     fac = fac * x;
     x = x - 1;
   } 
 
-  output(fac);
 }
 
-void main(int x) {
-  
+void test(void) {
+
+  int x; int fac; /* hello */
+  x = x + 1;
+
 }
