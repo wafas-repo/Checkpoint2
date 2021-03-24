@@ -12,6 +12,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
   HashMap<String, ArrayList<NodeType>> table;
   private static String tempParams = "";
+  private static String currFunc = "";
   public SemanticAnalyzer() {
 
     table = new HashMap<String, ArrayList<NodeType>>();
@@ -87,6 +88,12 @@ public class SemanticAnalyzer implements AbsynVisitor {
     exp.lhs.accept( this, level );
     exp.rhs.accept( this, level );
 
+    
+
+    // String var = "";
+    // if (exp.lhs instanceof SimpleVar) var = ((CallExp) exp.index).func;
+   
+
     // SimpleVar tempLhs = (SimpleVar) exp.lhs;
     // if (!findSymbol(tempLhs.name))
     //   System.err.printf("line %d: error: cannot find symbol %s\n", tempLhs.pos+1, tempLhs.name); 
@@ -112,23 +119,48 @@ public class SemanticAnalyzer implements AbsynVisitor {
   
   @Override
   public void visit(SimpleVar exp, int level) {
-      if (!findSymbol(exp.name))
-        System.err.printf("line %d: error: cannot find symbol %s\n", exp.pos+1, exp.name); 
+    
+    if (findSymbol(exp.name)) {
+      if (!isInt(exp.name))
+        System.err.printf("line %d: error: invalid data type. Variable must be int %s\n", exp.pos+1, exp.name);
+    } else {
+      System.err.printf("line %d: error: cannot find symbol %s\n", exp.pos+1, exp.name);
+    }
 
   }
 
   
   @Override
   public void visit(ReturnExp exp, int level) {
-    exp.exp.accept(this, level);
-
+   
+    if (exp.exp instanceof NilExp) {
+      if (isInt(currFunc)) {
+        System.err.printf("line %d: error: incompatible types: missing return value\n", exp.pos+1);
+      }
+    } else {
+      exp.exp.accept(this, level);
+      if (!isInt(currFunc)) {
+        if (!(exp.exp instanceof NilExp)) {
+          System.err.printf("line %d: error: incompatible types: unexpected return value\n", exp.pos+1);
+        }
+      }
+    }
   }
 
   @Override
   public void visit(IndexVar exp, int level) {
     exp.index.accept(this, level);
-    if (!findSymbol(exp.name))
-      System.err.printf("line %d: error: cannot find symbol %s\n", exp.pos+1, exp.name); 
+    String var = "";
+    if (exp.index instanceof CallExp) var = ((CallExp) exp.index).func;
+    else if (((VarExp) exp.index).variable instanceof SimpleVar) var = ((SimpleVar) ((VarExp) exp.index).variable).name;
+    else if (((VarExp) exp.index).variable instanceof IndexVar) var = ((IndexVar) ((VarExp) exp.index).variable).name;
+    if (findSymbol(var)){
+      if (!isInt(var)) {
+        System.err.printf("line %d: error: invalid data type. index must be int\n", exp.pos+1);
+      }  
+    } else {
+      System.err.printf("line %d: error: cannot find symbol %s\n", exp.pos+1, exp.name);
+    }
 
   }
 
@@ -140,7 +172,11 @@ public class SemanticAnalyzer implements AbsynVisitor {
       ex = ex.tail;
     } 
 
-    if (!findSymbol(exp.func)) {
+    if (findSymbol(exp.func)) {
+      if (!isInt(exp.func)) {
+        System.err.printf("line %d: error: invalid data type. function call must be int\n", exp.pos+1);
+      }   
+    } else {
       System.err.printf("line %d: error: function %s is undeclared\n", exp.pos+1, exp.func); 
     }
     
@@ -168,7 +204,15 @@ public class SemanticAnalyzer implements AbsynVisitor {
     System.out.println("Entering a new if block: " + level);
     exp.test.accept( this, level );
     exp.thenpart.accept( this, level );
-    
+    String var = "";
+    if ((exp.test instanceof VarExp) || (exp.test instanceof CallExp)) {
+      if (exp.test instanceof CallExp) var = ((CallExp) exp.test).func;
+      else if (((VarExp) exp.test).variable instanceof SimpleVar) var = ((SimpleVar) ((VarExp) exp.test).variable).name;
+      else if (((VarExp) exp.test).variable instanceof IndexVar) var = ((IndexVar) ((VarExp) exp.test).variable).name;
+          if (!isInt(var)){
+            System.err.printf("line %d: error: Test variable must be int.\n", exp.pos+1);
+          }
+    }
     printMap(level);
     delete(level);
     indent(level);
@@ -193,6 +237,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
       level++;
       indent(level);
       System.out.println("Entering the scope for function: "+ exp.func + " " + level);
+      currFunc = exp.func;
       //exp.result.accept(this, level);
       VarDecList ex = exp.params;
       tempParams = "";
@@ -201,19 +246,19 @@ public class SemanticAnalyzer implements AbsynVisitor {
         ex = ex.tail;
       }
       entry.params = tempParams;
-      //Params = scopeParams;
-      exp.body.accept(this, level);
+     
       if (table.get(exp.func) == null) {
         table.put(exp.func, new ArrayList<NodeType>());
       }
       
       table.get(exp.func).add(0, entry);
-    
+      exp.body.accept(this, level);
       printMap(level);
       delete(level);
       indent(level);
       System.out.println("Leaving the scope for function: " + exp.func + " " + level);
       removeFuncVars(table.entrySet().iterator());
+      currFunc = "";
     } else {
       System.err.printf("line %d: error: function %s is already defined within scope.\n", exp.pos+1, exp.func);
     }
@@ -241,8 +286,8 @@ public class SemanticAnalyzer implements AbsynVisitor {
     name = name + "]";
 
     NodeType entry = new NodeType(exp.name, exp.typ, level, "");
-   // System.out.println(exp.name);
-   // System.out.println(name);
+    // System.out.println(exp.name);
+    // System.out.println(name);
     if (table.get(exp.name) == null) {
       table.put(name, new ArrayList<NodeType>());
       table.put(exp.name, new ArrayList<NodeType>());
@@ -254,12 +299,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
       System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
     }
    
-    //boolean err;
-    //err = insert(name, level, exp.typ);
-    //if (err == false) {
-    //  System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
-    //}
-
     tempParams += exp.typ.typ + " ";
 
   }
@@ -397,13 +436,14 @@ public class SemanticAnalyzer implements AbsynVisitor {
       String key = ee.getKey();
       ArrayList<NodeType> values = ee.getValue();
       for (NodeType obj : values) {
+        //System.out.println(table);
        // System.out.println("obj: " + obj.name + obj.level + obj.type.typ);
-      //  System.out.println(name);
+       // System.out.println(name);
         //System.out.println("node: " + node.name + node.level + node.type.typ);
         if (obj.name.equals(name)) {
-      //    System.out.println("true");
+          //System.out.println("true");
           if(obj.type.typ == 0) {
-      //      System.out.println("true" + obj.type.typ);
+           // System.out.println("true" + obj.type.typ);
             return true; 
           }
             //System.out.println("true");  
@@ -413,4 +453,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
     return false;
   }
 }
+
+
 
