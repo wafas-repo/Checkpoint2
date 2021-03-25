@@ -1,7 +1,21 @@
 /* A program to perform selection sort 
-   on a 10 element array */
+   on a 10 element array this file compiles 
+   with no errors. */
 
 int x[10];
+int y;
+
+int input(void) {
+	int usrInput;
+}
+
+int output(int value) {
+	value = value;
+}
+
+void foo(void) {
+  
+} 
 
 int minloc(int a[], int low, int high) {
   int i; int x; int k; 

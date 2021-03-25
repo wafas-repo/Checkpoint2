@@ -1,16 +1,15 @@
 Wafa Qazi / Aqsa Pehlvi
 CIS*4650
-Checkpoint 1
-March 7, 2021
+Checkpoint 2
+March 24, 2021
 
 ===================
 PROGRAM DESCRIPTION
 ===================
 
-For CheckpointOne, the following was implemented: 
-      • Scanner that generates a sequence of relevant tokens
-      • Parser that generates and showsan abstract syntax tree
-      • Error Recovery that reports errors and continues the parsing process
+For CheckpointTwo, the following was implemented: 
+      • Symbol Table that maintains all declarations within program
+      • Type checking validation for all types of operations within program 
 
 =========================
 BUILDING AND TESTING PLAN
@@ -25,17 +24,22 @@ Building
 
   Note that you need to modify the paths for CLASSPATH, JFLEX, and CUP in 
 the Makefile so that the related commands can be found on your particular 
-machine.  For example, the given settings are for the Linux server and the 
-commented settings are for my macbook.
+machine. 
 
   To build the parser, type "make" in the current directory, which will 
 generate an executable program called "CM".
 
-  To test source code like "fac.cm", type 
+  If youd like to produce a syntax-tree for the input file you will need to 
+  add a "-a" flag to the command line.
 
-    "java -classpath /usr/share/java/cup.jar:. CM fac.cm" 
+  If youd like to produce the symbol table for the input file you will need to 
+  add a "-s" flag to the command line.
 
-and the syntax tree will be displayed on the screen.
+  For example, to test source code like "fac.cm", type 
+
+    "java -cp java/java-cup-11b.jar:. CM -s -a testfiles/fac.cm " 
+
+  Sytax tree and symbol table output will be redirected to .sym and .abs files respectively.
 
   To rebuild the parser, type "make clean" and type "make" again.
 
@@ -58,14 +62,14 @@ ASSUMPTIONS AND LIMITATIONS
 
  1. Assume testing will be with errors of scope relaated to assignment
  2. This program will work with any files of C- spec
- 3. This program does not have extensive error handling and will give
-    a null pointer exception when presented with most syntactical or 
-    lexical errors.
+ 3. We have follwed the reccomended examples of declaration and type-checking errors and have done 
+    recovery for all provided. Only limitation is the number of parameters in a function. Our program
+    doesnt recognize mismatch between function dec and call.
 
 ====================
 FURTHER IMPROVEMENTS
 ====================
 
-1. Much more error handling can be implemented 
-2. Refactoring the AST class structure may improve output of the tree 
+1. We could improve on our code structure and handle the symbol table more efficiently 
+2. More in depth type checking could be done for the funtion parameters 
 

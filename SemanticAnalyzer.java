@@ -1,3 +1,4 @@
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ public class SemanticAnalyzer implements AbsynVisitor {
   HashMap<String, ArrayList<NodeType>> table;
   private static String tempParams = "";
   private static String currFunc = "";
+  public static int x;
+  ArrayList<String> temp = new ArrayList<String>();
   public SemanticAnalyzer() {
 
     table = new HashMap<String, ArrayList<NodeType>>();
@@ -25,7 +28,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
     for( int i = 0; i < level * SPACES; i++ ) System.out.print( " " );
   }
   
-  ////////////////////////////////// Dont touch
   public void visit( ExpList expList, int level ) {
     while( expList != null ) {
       if (expList.head != null){
@@ -35,25 +37,21 @@ public class SemanticAnalyzer implements AbsynVisitor {
     } 
   }
 
-  //////////////////////////// Dont touch
   public void visit( IntExp exp, int level ) {
 
   }
 
-  /////////////////////// Dont touch
   @Override
   public void visit(NilExp exp, int level) {
 
     
   }
 
-  /////////////////////////// Dont touch
   @Override
   public void visit(NameTy exp, int level) {
   
   }
 
-  ////////////////////////////// Dont touch
   @Override
   public void visit(CompoundExp exp, int level) {
      VarDecList dec = exp.decs;
@@ -72,7 +70,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
      } 
   }
 
-  ////////////////////// Dont touch
   @Override
   public void visit(VarDecList exp, int level) {
       while( exp != null ) {
@@ -87,28 +84,30 @@ public class SemanticAnalyzer implements AbsynVisitor {
   public void visit( AssignExp exp, int level ) {
     exp.lhs.accept( this, level );
     exp.rhs.accept( this, level );
+    String var = "";
+    if (exp.rhs instanceof CallExp) {
+      var = ((CallExp) exp.rhs).func;
+      if (!isInt(var)){
+        System.err.printf("line %d: error: illegal use of function call must be int.\n", exp.rhs.pos+1);
+      }
 
-    
-
-    // String var = "";
-    // if (exp.lhs instanceof SimpleVar) var = ((CallExp) exp.index).func;
-   
-
-    // SimpleVar tempLhs = (SimpleVar) exp.lhs;
-    // if (!findSymbol(tempLhs.name))
-    //   System.err.printf("line %d: error: cannot find symbol %s\n", tempLhs.pos+1, tempLhs.name); 
-    // if(isInt(tempLhs.name)){
-    //   System.out.println("Is Int " + tempLhs.name );
-    // } else {
-    //   System.out.println(" Err Not Int " + tempLhs.name);
-    // }
-       
+    }
 
   }
 
   public void visit( OpExp exp, int level ) {
     exp.left.accept( this, level );
     exp.right.accept( this, level );
+    String var = "";
+    if (exp.left instanceof CallExp) {
+      var = ((CallExp) exp.left).func;
+      if (!isInt(var)) 
+        System.err.printf("line %d: error: illegal use of function call must be int.\n", exp.left.pos+1);
+    } else if (exp.right instanceof CallExp) {
+      var = ((CallExp) exp.right).func;
+      if (!isInt(var))
+        System.err.printf("line %d: error: illegal use of function call must be int.\n", exp.right.pos+1);
+    }
   }
 
   public void visit( VarExp exp, int level ) {
@@ -122,7 +121,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
     
     if (findSymbol(exp.name)) {
       if (!isInt(exp.name))
-        System.err.printf("line %d: error: invalid data type. Variable must be int %s\n", exp.pos+1, exp.name);
+        System.err.printf("line %d: error: invalid data type. Variable must be int -> %s\n", exp.pos+1, exp.name);
     } else {
       System.err.printf("line %d: error: cannot find symbol %s\n", exp.pos+1, exp.name);
     }
@@ -172,13 +171,9 @@ public class SemanticAnalyzer implements AbsynVisitor {
       ex = ex.tail;
     } 
 
-    if (findSymbol(exp.func)) {
-      if (!isInt(exp.func)) {
-        System.err.printf("line %d: error: invalid data type. function call must be int\n", exp.pos+1);
-      }   
-    } else {
+    if (!findSymbol(exp.func)) {
       System.err.printf("line %d: error: function %s is undeclared\n", exp.pos+1, exp.func); 
-    }
+    } 
     
   }
 
@@ -186,14 +181,21 @@ public class SemanticAnalyzer implements AbsynVisitor {
   public void visit(WhileExp exp, int level) {
     level++;
     indent(level);
-    System.out.println("Entering a new while block: " + level);
+    System.out.println("Entering a new while block: ");
     exp.test.accept( this, level );
     exp.body.accept( this, level ); 
 
     printMap(level);
     delete(level);
     indent(level);
-    System.out.println("leaving while block: " + level);
+    System.out.println("leaving while block: ");
+    String var = "";
+    if (exp.test instanceof CallExp) {
+      var = ((CallExp) exp.test).func;
+      if (!isInt(var)) 
+        System.err.printf("line %d: error: Test expression %s is not an integer.\n", exp.pos+1, var);
+    }
+
 
 
   }
@@ -201,10 +203,25 @@ public class SemanticAnalyzer implements AbsynVisitor {
   public void visit( IfExp exp, int level ) {
     level++;
     indent( level );
-    System.out.println("Entering a new if block: " + level);
+    System.out.println("Entering a new if block: ");
     exp.test.accept( this, level );
     exp.thenpart.accept( this, level );
     String var = "";
+    printMap(level);
+    delete(level);
+    indent(level);
+    System.out.println("Leaving the if block:  ");
+    
+    if (exp.elsepart != null ) {
+      indent(level);
+      System.out.println("Entering a new else block: ");
+      exp.elsepart.accept( this, level );
+      printMap(level);
+      delete(level);
+      indent(level);
+      System.out.println("Leaving the else block: ");
+    }
+
     if ((exp.test instanceof VarExp) || (exp.test instanceof CallExp)) {
       if (exp.test instanceof CallExp) var = ((CallExp) exp.test).func;
       else if (((VarExp) exp.test).variable instanceof SimpleVar) var = ((SimpleVar) ((VarExp) exp.test).variable).name;
@@ -212,20 +229,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
           if (!isInt(var)){
             System.err.printf("line %d: error: Test variable must be int.\n", exp.pos+1);
           }
-    }
-    printMap(level);
-    delete(level);
-    indent(level);
-    System.out.println("Leaving the if block:  " + level);
-    
-    if (exp.elsepart != null ) {
-      indent(level);
-      System.out.println("Entering a new else block: " + level);
-      exp.elsepart.accept( this, level );
-      printMap(level);
-      delete(level);
-      indent(level);
-      System.out.println("Leaving the else block: " + level);
     }
        
   }
@@ -236,9 +239,8 @@ public class SemanticAnalyzer implements AbsynVisitor {
     if (!varExistsInCurrentScope(exp.func, level)){
       level++;
       indent(level);
-      System.out.println("Entering the scope for function: "+ exp.func + " " + level);
+      System.out.println("Entering the scope for function: "+ exp.func);
       currFunc = exp.func;
-      //exp.result.accept(this, level);
       VarDecList ex = exp.params;
       tempParams = "";
       while( ex != null ) {
@@ -256,8 +258,11 @@ public class SemanticAnalyzer implements AbsynVisitor {
       printMap(level);
       delete(level);
       indent(level);
-      System.out.println("Leaving the scope for function: " + exp.func + " " + level);
+      System.out.println("Leaving the scope for function: " + exp.func);
       removeFuncVars(table.entrySet().iterator());
+      for (int i = 0; i < temp.size(); i++) 
+        table.put(temp.get(i), new ArrayList<NodeType>());
+        
       currFunc = "";
     } else {
       System.err.printf("line %d: error: function %s is already defined within scope.\n", exp.pos+1, exp.func);
@@ -273,8 +278,7 @@ public class SemanticAnalyzer implements AbsynVisitor {
     if (err == false) {
       System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
     }
-    
-    //exp.typ.accept( this, level );
+
   }
 
   @Override
@@ -285,15 +289,17 @@ public class SemanticAnalyzer implements AbsynVisitor {
         name = name + exp.size.value + "";
     name = name + "]";
 
+    if (level == 0) {
+      temp.add(exp.name);
+    }
+
     NodeType entry = new NodeType(exp.name, exp.typ, level, "");
-    // System.out.println(exp.name);
-    // System.out.println(name);
     if (table.get(exp.name) == null) {
       table.put(name, new ArrayList<NodeType>());
       table.put(exp.name, new ArrayList<NodeType>());
+      
     } 
     if (!varExistsInCurrentScope(exp.name, level)){
-      //System.out.println("Node exists " + entry.name);
       table.get(name).add(entry);
     } else {
       System.err.printf("line %d: error: variable %s is already defined within scope.\n", exp.pos+1, exp.name);
@@ -305,28 +311,26 @@ public class SemanticAnalyzer implements AbsynVisitor {
 
   @Override
   public void visit(DecList exp, int level) {
-    System.out.println("Entering global scope: " + level);
+    System.out.println("Entering global scope: ");
      while( exp != null ) {
       exp.head.accept( this, level );
       exp = exp.tail;
     }
     printMap(level);
     delete(level);
-    System.out.println("Leaving global scope: "  + level);
+    System.out.println("Leaving global scope: ");
   }
 
   public void printMap(int level) {
-    //System.out.println(table);
-   //System.out.println(table.keySet());
+   // System.out.println(table);
     for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
       for (NodeType node : ee.getValue()) {
         if (node.level == level) {
           level++;
           indent(level);
           level--;
-          //System.out.print(node.level);
           System.out.print(ee.getKey() + ": ");
-          if (!node.params.isEmpty()) {  /////////////// fix parameter printing only prints according to last parameter
+          if (!node.params.isEmpty()) { 
             String[] tokens = node.params.split(" ");
             System.out.print("( ");
             for (String s : tokens) {
@@ -338,7 +342,6 @@ public class SemanticAnalyzer implements AbsynVisitor {
             System.out.print(") -> ");
           }
             if (node.level == level) {
-              //System.out.print(node.level);
               if(node.type.typ == 1) {
                 System.out.println("void");
               } else if (node.type.typ == 0) {
@@ -350,75 +353,45 @@ public class SemanticAnalyzer implements AbsynVisitor {
     }
   }
 
-  // Need to handle cases for double declarations within scope 
   public boolean insert(String name, int level, NameTy type){  
-
-    NodeType entry = new NodeType(name, type, level, ""); // check if this node exists
-   // System.out.println("entry to go in: " + entry.name + entry.level + entry.type.typ);
+    NodeType entry = new NodeType(name, type, level, ""); 
       if (table.get(name) == null) {
         table.put(name, new ArrayList<NodeType>());
       } 
       if (!varExistsInCurrentScope(name, level)){
-        //System.out.println("Node exists " + entry.name);
         table.get(name).add(entry);
         return true;
-      } //else {
-        //System.out.println("Node exists already!");
-        
-      //}
-      return false;
-
-      //System.out.println(entry.name + "" + entry.level);
-     
+      } 
+      return false;  
   }
-
 
   public boolean varExistsInCurrentScope(String name, int level){
     NodeType node = new NodeType(name, level);
 		for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
-      String key = ee.getKey();
       ArrayList<NodeType> values = ee.getValue();
       for (NodeType obj : values) {
-        //System.out.println("obj: " + obj.name + obj.level + obj.type.typ);
-        //System.out.println("node: " + node.name + node.level + node.type.typ);
         if (obj.equals(node)) {
-            //System.out.println("true");
-             return true;
-             
+             return true;   
         }
-        // } else {
-        //   System.out.println("false");
-        // }
       }
     }
-   // System.out.println("false");
     return false;
   }
 
-  // find if var name exists in symbol table 
-  public boolean findSymbol(String name) {
-    
+  public boolean findSymbol(String name) { 
     if (table.containsKey(name)) {
       return true;
     }
-
     return false;
-
   }
 
-  // remove all variable declared within function so we can check symbol
-  // table for undeclared vars 
   public void removeFuncVars(Iterator it) {
-    // how to find out whether list associated with key is empty if is delete key
     while (it.hasNext()) {
       Entry<String, ArrayList<NodeType>> e = (Entry<String, ArrayList<NodeType>>) it.next();
-      //System.out.println(e.getKey() + ": " + e.getValue().isEmpty());
       if(e.getValue().isEmpty()) {
-        //System.out.println("key list empty " + e.getKey());
         it.remove();
       } 
     } 
-
   }
   
   public void delete(int level) {
@@ -431,22 +404,14 @@ public class SemanticAnalyzer implements AbsynVisitor {
   }
 
   public boolean isInt(String name){
-
     for (Entry<String, ArrayList<NodeType>> ee : table.entrySet()) {
       String key = ee.getKey();
       ArrayList<NodeType> values = ee.getValue();
       for (NodeType obj : values) {
-        //System.out.println(table);
-       // System.out.println("obj: " + obj.name + obj.level + obj.type.typ);
-       // System.out.println(name);
-        //System.out.println("node: " + node.name + node.level + node.type.typ);
         if (obj.name.equals(name)) {
-          //System.out.println("true");
           if(obj.type.typ == 0) {
-           // System.out.println("true" + obj.type.typ);
             return true; 
-          }
-            //System.out.println("true");  
+          } 
         }
       }
     }

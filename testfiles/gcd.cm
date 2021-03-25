@@ -1,6 +1,18 @@
 /* A program to perform Euclid's 
    algorithm to compute a gcd */
 
+int input(void) {
+	int usrInput;
+}
+
+int output(int value) {
+	value = value;
+}
+
+void foo(void) {
+  
+}
+
 int gcd(int u, int v) {
   if (v == 0) return u;
   else return gcd(v, u - u/v*v);

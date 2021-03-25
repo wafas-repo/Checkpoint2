@@ -1,0 +1,34 @@
+/* A program to perform Euclid's 
+   algorithm to compute a gcd */
+/* The errors contained in this test file are
+   - declaring y twice within main function
+   - using z without declaring
+   - void function foo returns int 
+*/
+
+int input(void) {
+	int usrInput;
+}
+
+int output(int value) {
+	value = value;
+}
+
+void foo(void) {
+  int x;
+  return x;
+}
+
+int gcd(int u, int v) {
+  if (v == 0) return u;
+  else return gcd(v, u - u/v*v);
+}
+
+void main(void) {
+  int x; int y;
+  int y;
+  x = input();
+  y = input();
+  z = input();
+  output(gcd(x, y));
+}

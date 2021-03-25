@@ -1,0 +1,32 @@
+/* A program to compute the f42484894u29
+ factorial value of an input */
+/* The errors contained in this test file are
+   - call output without it being declared
+   - invalid index type void for array a
+   - assigning void function call to int variable x
+*/
+
+int input(void) {
+	int usrInput;
+}
+
+void foo(void) {
+
+}
+
+void main(void) {
+  int x; int fac; /* hello */
+  int a[2];
+  a[x] = 1;
+  a[foo()] = 2;
+  x = foo();
+  x = input();
+  fac = 1;
+
+  while (x > 1) {
+    fac = fac * x;
+    x = x - 1;
+  } 
+
+  output(fac);
+}
