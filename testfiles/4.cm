@@ -1,0 +1,43 @@
+/* A program to compute the f42484894u29
+ factorial value of an input */
+/* The errors contained in this test file are
+   - mismatch between int and void in operations
+   - no return value from int function
+   - using a void test value in if statement 
+*/
+
+int input(void) {
+	int usrInput;
+}
+
+int output(int value) {
+	value = value;
+}
+
+int funtwo(void) {
+  int x;
+  x = 2;
+  return;
+}
+
+void foo(void) {
+
+}
+
+void main(void) {
+  int x; void fac; /* hello */
+  x = input();
+  fac = 1;
+
+  if (foo()) {
+    output(x);
+  }
+
+  while (x > 1) {
+    fac = fac * x;
+    x = x - 1;
+  } 
+
+  output(fac);
+}
+

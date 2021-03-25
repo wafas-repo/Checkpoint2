@@ -1,0 +1,74 @@
+/* A program to perform selection sort 
+   on a 10 element array */
+/* The errors contained in this test file are
+   - Undeclared variable k in minloc
+   - mismatch type operation in minloc void parameter
+   - non-int index variable in sort
+   - empty return value in int funtion;
+   - invalid type declaration for i in main
+   - calling undeclared funtion
+   - test variable for while is not int in sort
+   - redefinition of a array in minloc
+*/
+
+int x[10];
+
+int input(void) {
+	int usrInput;
+}
+
+int output(int value) {
+	value = value;
+    return;
+}
+
+void foo(void) {
+  
+} 
+
+int minloc(int a[], int low, void high) {
+  int i; int x;
+  int a[10];
+  k = low;
+  x = a[low];
+  i = low + 1;
+  while (i < high) {
+    if (a[i] < x) {
+       x = a[i];
+       k = i; 
+    }
+    i = i + 1;
+  } 
+  return k;
+}
+
+void sort(int a[], int low, int high) {
+  int i; int k; void s;
+  i = low;
+  while (foo()) {
+    int t;
+    k = minloc(a, i, high);
+    t = a[s];
+    a[k] = a[i];
+    a[i] = t;
+    i = i + 1;
+  }
+}
+
+void main(void) {
+  void i;
+  i = 0;
+  while (i < 10) {
+    x[i] = input();
+    i = i + 1;
+  }
+
+  sort(x, 0, 10);
+  nonExistent();
+
+  i = 0;
+  while (i < 10) {
+    output(x[i]);
+    i = i + 1;
+  }
+}

@@ -4,12 +4,19 @@ public class NodeType {
     public String name;
     NameTy type;
     public int level;
+    public String params;
 
 
-    public NodeType(String name, NameTy type, int level) {
+    public NodeType(String name, NameTy type, int level, String params) {
         this.name = name;
         this.type = type;
         this.level = level;
+        this.params = params;
+    }
+
+    public NodeType(String name2, int level2) {
+        this.name = name2;
+        this.level = level2;
     }
 
     @Override
@@ -22,10 +29,6 @@ public class NodeType {
         }
 
         if (node.level != this.level) {
-            return false;
-        }
-
-        if (node.type.typ != this.type.typ) {
             return false;
         }
              
