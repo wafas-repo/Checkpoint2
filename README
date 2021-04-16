@@ -1,13 +1,9 @@
-Wafa Qazi / Aqsa Pehlvi
-CIS*4650
-Checkpoint 2
+Wafa Qazi 
 March 24, 2021
 
 ===================
 PROGRAM DESCRIPTION
 ===================
-
-For CheckpointTwo, the following was implemented: 
       • Symbol Table that maintains all declarations within program
       • Type checking validation for all types of operations within program 
 
@@ -56,15 +52,6 @@ Testing
   This parser is meant to take C- programs as input files. We have provided
   [12345].cm files to test with, however any C- program files will work. 
 
-===========================
-ASSUMPTIONS AND LIMITATIONS
-===========================
-
- 1. Assume testing will be with errors of scope relaated to assignment
- 2. This program will work with any files of C- spec
- 3. We have follwed the reccomended examples of declaration and type-checking errors and have done 
-    recovery for all provided. Only limitation is the number of parameters in a function. Our program
-    doesnt recognize mismatch between function dec and call.
 
 ====================
 FURTHER IMPROVEMENTS
